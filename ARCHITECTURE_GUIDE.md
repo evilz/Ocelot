@@ -22,7 +22,7 @@ An API gateway is a server that acts as an intermediary between clients and back
 
 ### Core Purpose
 
-From the source code analysis (`README.md` and core architecture):
+From analyzing the source code structure and core components:
 - Provides a unified entry point for microservices architectures
 - Runs on any platform that ASP.NET Core supports
 - Handles HTTP(S) requests through a configurable middleware pipeline
@@ -198,7 +198,7 @@ From `src/Ocelot/Middleware/OcelotPipelineExtensions.cs`, the full middleware pi
 23. LoadBalancingMiddleware         - Selects downstream host
 24. DownstreamUrlCreatorMiddleware  - Creates the final downstream URL
 25. OutputCacheMiddleware           - Caching logic
-26. HttpRequesterMiddleware         - Makes the actual HTTP request
+26. HttpRequesterMiddleware         - Makes the actual HTTP request (last Ocelot middleware)
 ```
 
 ### WebSocket Pipeline
@@ -292,7 +292,7 @@ public async Task Invoke(HttpContext httpContext)
 - Makes the actual HTTP request to the downstream service
 - Uses `IHttpRequester` to send the request
 - Stores the response in `HttpContext.Items`
-- **Does not call the next middleware** - this is the end of the Ocelot pipeline
+- This is the last Ocelot middleware in the pipeline (though it does call `_next.Invoke()` to continue to ASP.NET Core's default handlers)
 - Response flows back up through the middleware chain
 
 ---
@@ -502,7 +502,7 @@ Client Request
     - Sends request to downstream service
     - Receives HttpResponseMessage
     - Stores in DownstreamResponse
-    - Does NOT call next middleware
+    - Last Ocelot middleware in the pipeline
     ↓
 Response flows back up through middleware
     ↓
@@ -596,7 +596,7 @@ Example:
 
 #### Load Balancer Factory
 
-From `src/Ocelot/LoadBalancer/LoadBalancerFactory.cs`, load balancers are created based on configuration:
+From `src/Ocelot/LoadBalancer/Interfaces/ILoadBalancerFactory.cs`, load balancers are created based on configuration:
 
 ```csharp
 public interface ILoadBalancerFactory
