@@ -170,7 +170,7 @@ public static async Task<IApplicationBuilder> UseOcelot(
 
 ### Complete Pipeline Order
 
-From `src/Ocelot/Middleware/OcelotPipelineExtensions.cs`, the full middleware pipeline is:
+From `src/Ocelot/Middleware/OcelotPipelineExtensions.cs`, the middleware pipeline executes in this order (note that it includes conditional branching for WebSockets and optional user-defined middleware):
 
 ```
 1. ConfigurationMiddleware          - Sets up downstream context and configuration
@@ -198,8 +198,10 @@ From `src/Ocelot/Middleware/OcelotPipelineExtensions.cs`, the full middleware pi
 23. LoadBalancingMiddleware         - Selects downstream host
 24. DownstreamUrlCreatorMiddleware  - Creates the final downstream URL
 25. OutputCacheMiddleware           - Caching logic
-26. HttpRequesterMiddleware         - Makes the actual HTTP request (last Ocelot middleware)
+26. HttpRequesterMiddleware         - Makes the actual HTTP request (last registered Ocelot middleware)
 ```
+
+Note: `HttpRequesterMiddleware` is the last middleware registered in the Ocelot pipeline. It does call `await _next.Invoke()` to continue the ASP.NET Core pipeline, but there are no more Ocelot-specific middleware after it.
 
 ### WebSocket Pipeline
 
@@ -1353,11 +1355,11 @@ public class CustomAggregator : IDefinedAggregator
 
 ## Summary
 
-Ocelot is a comprehensive API Gateway built on ASP.NET Core middleware pipeline:
+Ocelot is a comprehensive API Gateway built on ASP.NET Core middleware:
 
-1. **Architecture**: Chain of middleware components, each with specific responsibility
+1. **Architecture**: Sequential chain of middleware components with conditional branching, each with specific responsibility
 2. **Configuration**: JSON-based configuration transformed into internal representation
-3. **Request Flow**: Linear pipeline from route finding to request execution
+3. **Request Flow**: Sequential pipeline with conditional branches for route finding, processing, and request execution
 4. **Features**: Load balancing, caching, rate limiting, authentication, authorization
 5. **Extensibility**: Multiple extension points for custom behavior
 6. **Service Discovery**: Integration with Consul, Eureka, Kubernetes
