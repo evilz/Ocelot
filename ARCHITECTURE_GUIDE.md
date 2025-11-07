@@ -198,7 +198,7 @@ From `src/Ocelot/Middleware/OcelotPipelineExtensions.cs`, the middleware pipelin
 23. LoadBalancingMiddleware         - Selects downstream host
 24. DownstreamUrlCreatorMiddleware  - Creates the final downstream URL
 25. OutputCacheMiddleware           - Caching logic
-26. HttpRequesterMiddleware         - Makes the actual HTTP request (last registered Ocelot middleware)
+26. HttpRequesterMiddleware         - Makes the actual HTTP request to downstream services (final middleware in Ocelot's processing chain)
 ```
 
 Note: `HttpRequesterMiddleware` is the last middleware registered in the Ocelot pipeline. It does call `await _next.Invoke()` to continue the ASP.NET Core pipeline, but there are no more Ocelot-specific middleware after it.
@@ -1357,7 +1357,7 @@ public class CustomAggregator : IDefinedAggregator
 
 Ocelot is a comprehensive API Gateway built on ASP.NET Core middleware:
 
-1. **Architecture**: Sequential chain of middleware components with conditional branching, each with specific responsibility
+1. **Architecture**: Sequential chain of middleware components with conditional branching, each with a specific responsibility
 2. **Configuration**: JSON-based configuration transformed into internal representation
 3. **Request Flow**: Sequential pipeline with conditional branches for route finding, processing, and request execution
 4. **Features**: Load balancing, caching, rate limiting, authentication, authorization
